@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OOP Polymorphism Visualizer</title>
+    <title>OOP Polymorphism Visualizer - Upgrade</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* 전투 로그 스크롤바 커스텀 */
@@ -12,29 +12,38 @@
         #combat-log::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         #combat-log::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        /* 클릭 효과 애니메이션 */
-        .click-animate:active { transform: scale(0.95); }
+        /* 크리티컬 데미지 팝업 애니메이션 */
+        @keyframes crit-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+        .crit-animation {
+            animation: crit-pop 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen font-sans text-gray-800 flex flex-col">
 
     <!-- Header -->
-    <header class="bg-indigo-600 text-white py-4 shadow-md text-center">
-        <h1 class="text-2xl font-bold">OOP 다형성 시각화 (Polymorphism)</h1>
-        <p class="text-indigo-200 text-sm mt-1">노드를 클릭하여 다형성(Polymorphism)이 어떻게 작동하는지 확인하세요.</p>
+    <header class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-5 shadow-md text-center">
+        <h1 class="text-2xl font-bold tracking-tight">OOP 다형성 시각화 시뮬레이터 (가산점 버전)</h1>
+        <p class="text-indigo-100 text-sm mt-1">상속 구조의 노드를 클릭하여 타겟을 공격하고, 동적 다형성(Polymorphism)을 체험해 보세요.</p>
     </header>
 
-    <main class="flex-grow flex flex-col md:flex-row p-6 gap-6 max-w-6xl mx-auto w-full">
+    <main class="flex-grow flex flex-col lg:flex-row p-6 gap-6 max-w-6xl mx-auto w-full">
         
         <!-- 왼쪽: UML 시각화 영역 -->
-        <section class="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col items-center">
-            <h2 class="text-lg font-semibold text-gray-700 mb-6 w-full text-left border-b pb-2">Class Hierarchy (UML)</h2>
+        <section class="flex-1 bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col items-center justify-center">
+            <h2 class="text-lg font-semibold text-gray-700 mb-6 w-full text-left border-b pb-2 flex items-center gap-2">
+                <span class="w-2 h-5 bg-indigo-500 rounded-full"></span>Class Hierarchy (UML 구조)
+            </h2>
             
             <!-- Interface Node -->
-            <div class="bg-slate-100 border-2 border-slate-400 rounded-lg p-4 w-64 text-center shadow-sm">
+            <div class="bg-slate-50 border-2 border-slate-400 rounded-xl p-4 w-64 text-center shadow-sm">
                 <div class="text-xs text-slate-500 font-mono italic mb-1">&laquo;interface&raquo;</div>
                 <div class="font-bold text-slate-700">CharacterADT</div>
-                <div class="text-sm text-slate-600 mt-2 border-t border-slate-300 pt-2 text-left">
+                <div class="text-xs text-slate-600 mt-2 border-t border-slate-300 pt-2 text-left space-y-0.5 font-mono">
                     <p>+ name: String</p>
                     <p>+ health: Number</p>
                     <p>+ attack(): void</p>
@@ -47,10 +56,10 @@
             <div class="w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-transparent border-t-slate-400"></div>
 
             <!-- Base Class Node -->
-            <div class="bg-blue-50 border-2 border-blue-400 rounded-lg p-4 w-64 text-center shadow-sm mt-1">
+            <div class="bg-blue-50 border-2 border-blue-400 rounded-xl p-4 w-64 text-center shadow-sm mt-1">
                 <div class="text-xs text-blue-500 font-mono italic mb-1">Base Class</div>
                 <div class="font-bold text-blue-800">Character</div>
-                <div class="text-sm text-blue-700 mt-2 border-t border-blue-200 pt-2 text-left">
+                <div class="text-xs text-blue-700 mt-2 border-t border-blue-200 pt-2 text-left space-y-0.5 font-mono">
                     <p>+ attack(): <span class="italic text-gray-400">Abstract</span></p>
                     <p>+ take_damage(amt): void</p>
                 </div>
@@ -58,64 +67,92 @@
 
             <!-- Branching Arrows -->
             <div class="h-6 w-px bg-blue-400"></div>
-            <div class="w-72 border-t-2 border-blue-400 flex justify-between">
+            <div class="w-80 border-t-2 border-blue-400 flex justify-between">
                 <div class="w-px h-6 bg-blue-400"></div>
                 <div class="w-px h-6 bg-blue-400"></div>
             </div>
             
-            <div class="flex gap-8 justify-center w-full mt-[-4px]">
+            <div class="flex gap-16 justify-center w-full mt-[-4px]">
                 <div class="w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-transparent border-t-blue-400"></div>
                 <div class="w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-transparent border-t-blue-400"></div>
             </div>
 
             <!-- Derived Classes -->
-            <div class="flex gap-8 mt-1">
-                <!-- Warrior Node -->
-                <div id="btn-warrior" class="click-animate cursor-pointer bg-red-50 border-2 border-red-400 hover:bg-red-100 transition-colors rounded-lg p-4 w-48 text-center shadow-md relative group">
-                    <div class="absolute -top-3 -right-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm animate-pulse group-hover:hidden">Click!</div>
-                    <div class="text-xs text-red-500 font-mono italic mb-1">Derived Class</div>
-                    <div class="font-bold text-red-800 text-lg">Warrior ⚔️</div>
-                    <div class="text-sm text-red-700 mt-2 border-t border-red-200 pt-2 text-left">
-                        <p class="font-mono text-xs">+ attack(): <br><span class="text-gray-600">Fixed Damage (70)</span></p>
+            <div class="flex gap-6 mt-1 w-full justify-center">
+                <!-- Warrior Node (요구사항 3: 클릭 피드백 애니메이션 적용) -->
+                <div id="btn-warrior" class="cursor-pointer bg-red-50 border-2 border-red-400 hover:bg-red-100 active:scale-95 transition-all duration-150 rounded-xl p-4 w-44 text-center shadow-md relative group select-none">
+                    <div class="absolute -top-3 -right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-bounce">Click!</div>
+                    <div class="text-[10px] text-red-500 font-mono italic mb-1">Derived Class</div>
+                    <div class="font-bold text-red-800 text-base">Warrior ⚔️</div>
+                    <div class="text-xs text-red-700 mt-2 border-t border-red-200 pt-2 text-left font-mono">
+                        <p class="font-bold">+ attack()</p>
+                        <p class="text-gray-500 text-[11px] mt-0.5">고정 피해: 70</p>
                     </div>
                 </div>
 
-                <!-- Archer Node -->
-                <div id="btn-archer" class="click-animate cursor-pointer bg-green-50 border-2 border-green-400 hover:bg-green-100 transition-colors rounded-lg p-4 w-48 text-center shadow-md relative group">
-                    <div class="absolute -top-3 -right-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm animate-pulse group-hover:hidden">Click!</div>
-                    <div class="text-xs text-green-500 font-mono italic mb-1">Derived Class</div>
-                    <div class="font-bold text-green-800 text-lg">Archer 🏹</div>
-                    <div class="text-sm text-green-700 mt-2 border-t border-green-200 pt-2 text-left">
-                        <p class="font-mono text-xs">+ attack(): <br><span class="text-gray-600">20% Critical (1.5x)</span></p>
+                <!-- Archer Node (요구사항 3: 클릭 피드백 애니메이션 적용) -->
+                <div id="btn-archer" class="cursor-pointer bg-green-50 border-2 border-green-400 hover:bg-green-100 active:scale-95 transition-all duration-150 rounded-xl p-4 w-44 text-center shadow-md relative group select-none">
+                    <div class="absolute -top-3 -right-2 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-bounce">Click!</div>
+                    <div class="text-[10px] text-green-500 font-mono italic mb-1">Derived Class</div>
+                    <div class="font-bold text-green-800 text-base">Archer 🏹</div>
+                    <div class="text-xs text-green-700 mt-2 border-t border-green-200 pt-2 text-left font-mono">
+                        <p class="font-bold">+ attack()</p>
+                        <p class="text-gray-500 text-[11px] mt-0.5">20% 크리티컬 (1.5배)</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- 오른쪽: 전투 로그 영역 -->
-        <section class="flex-1 bg-slate-900 rounded-xl shadow-lg border border-slate-700 flex flex-col overflow-hidden">
-            <div class="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center">
-                <h2 class="text-lg font-semibold text-slate-100 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
-                    Combat Log
-                </h2>
-                <button id="btn-clear" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1 rounded transition-colors">Clear</button>
-            </div>
+        <!-- 오른쪽: 실시간 타겟 상태 및 전투 로그 영역 -->
+        <section class="flex-1 flex flex-col gap-4">
             
-            <div id="combat-log" class="flex-1 p-4 overflow-y-auto font-mono text-sm space-y-2 h-[400px] md:h-auto">
-                <div class="text-slate-500 italic">System: Ready for combat. Click a subclass node to execute attack().</div>
+            <!-- 요구사항 1: 타겟 체력바(HP Bar) 시각화 UI -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">🎯</span>
+                        <span class="font-bold text-gray-700 text-base">공격 대상: 훈련용 더미 (Dummy)</span>
+                    </div>
+                    <span id="hp-text" class="font-mono text-sm font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">1000 / 1000 HP</span>
+                </div>
+                
+                <!-- 체력바 컨테이너 -->
+                <div class="w-full bg-gray-200 h-6 rounded-full overflow-hidden p-0.5 shadow-inner">
+                    <!-- 게이지바 (부드러운 애니메이션을 위한 transition-all duration-300) -->
+                    <div id="hp-bar" class="bg-gradient-to-r from-red-500 via-orange-500 to-emerald-500 h-full rounded-full transition-all duration-300 ease-out" style="width: 100%;"></div>
+                </div>
+            </div>
+
+            <!-- 전투 로그 영역 -->
+            <div class="flex-grow bg-slate-900 rounded-2xl shadow-lg border border-slate-700 flex flex-col overflow-hidden">
+                <div class="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center">
+                    <h2 class="text-base font-semibold text-slate-100 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                        전투 시뮬레이션 로그 (Combat Log)
+                    </h2>
+                    <button id="btn-clear" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1 rounded-md transition-colors">로그 초기화</button>
+                </div>
+                
+                <!-- 로그 메시지 출력창 -->
+                <div id="combat-log" class="flex-1 p-4 overflow-y-auto font-mono text-xs space-y-2.5 h-[320px] lg:h-0">
+                    <div class="text-slate-500 italic">System: 전투 준비 완료. 상위 상속 노드를 클릭하여 Polymorphism 기반 .attack() 메소드를 작동시키세요.</div>
+                </div>
             </div>
         </section>
     </main>
 
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-3 text-center text-xs text-gray-500 font-mono">
+        Object-Oriented Programming & Polymorphism Visualizer v2.0
+    </footer>
+
     <script>
         // ==========================================
-        // [OOP Logic] 
-        // JavaScript에는 완벽한 Interface 문법이 없지만, 
-        // 구조적으로 부모 클래스에서 구현을 강제하는 방식으로 모방할 수 있습니다.
+        // [기존 OOP 구조 유지] 
+        // JavaScript Class 패턴으로 설계된 Character 상속 모델
         // ==========================================
 
-        // 1. Base Class (CharacterADT 인터페이스 역할을 포함)
+        // 1. Base Class (인터페이스 명세 및 기본 로직 역할)
         class Character {
             constructor(name, health) {
                 this.name = name;
@@ -127,19 +164,19 @@
                 if (this.health < 0) this.health = 0;
             }
 
-            // 다형성을 위해 하위 클래스에서 오버라이딩(Overriding) 해야 하는 메서드
+            // 다형성을 위해 파생 클래스에서 오버라이딩해야 하는 추상 메소드 역할
             attack() {
                 throw new Error("attack() method must be implemented by subclass");
             }
         }
 
-        // 2. Derived Class: Warrior
+        // 2. Derived Class: Warrior (전사)
         class Warrior extends Character {
             constructor(name, health) {
-                super(name, health); // 부모 클래스 생성자 호출
+                super(name, health);
             }
 
-            // 오버라이딩 (고정 데미지)
+            // 오버라이딩: 고정 데미지 70 리턴
             attack() {
                 const damage = 70;
                 return { 
@@ -147,21 +184,21 @@
                     type: 'Warrior',
                     damage: damage, 
                     isCrit: false,
-                    message: `강력한 베기 공격! (${damage} 피해)`
+                    message: `강력한 대검 베기! 💥 타겟에게 고정 데미지 [${damage}]를 입혔습니다.`
                 };
             }
         }
 
-        // 3. Derived Class: Archer
+        // 3. Derived Class: Archer (궁수)
         class Archer extends Character {
             constructor(name, health) {
                 super(name, health);
             }
 
-            // 오버라이딩 (확률적 크리티컬 데미지)
+            // 오버라이딩: 20% 확률로 1.5배 크리티컬 적용
             attack() {
                 const baseDamage = 50;
-                const isCrit = Math.random() < 0.2; // 20% 확률
+                const isCrit = Math.random() < 0.2; // 20% 확률 변수
                 const finalDamage = isCrit ? Math.floor(baseDamage * 1.5) : baseDamage;
                 
                 return { 
@@ -169,62 +206,121 @@
                     type: 'Archer',
                     damage: finalDamage, 
                     isCrit: isCrit,
-                    message: isCrit ? `🔥 크리티컬 히트! 정밀한 사격! (${finalDamage} 피해)` : `일반 화살 쏘기. (${finalDamage} 피해)`
+                    message: isCrit 
+                        ? `🎯 핵심 찌르기! [크리티컬 히트]가 발생하여 1.5배의 치명적인 데미지 [${finalDamage}]를 입혔습니다!`
+                        : `기본 화살 사격. 타겟에게 일반 데미지 [${finalDamage}]를 입혔습니다.`
                 };
             }
         }
 
         // ==========================================
-        // [UI & Event Logic]
+        // [시스템 환경 및 타겟(더미) 데이터 초기화]
         // ==========================================
-        
-        // 객체 인스턴스 생성
+        const MAX_TARGET_HP = 1000;
+        let currentTargetHp = MAX_TARGET_HP;
+
+        // 다형성을 보여주기 위한 캐릭터 인스턴스 할당
         const myWarrior = new Warrior('전사(Warrior)', 500);
         const myArcher = new Archer('궁수(Archer)', 300);
 
-        // DOM Elements
+        // DOM 요소 캐싱
         const btnWarrior = document.getElementById('btn-warrior');
         const btnArcher = document.getElementById('btn-archer');
         const logContainer = document.getElementById('combat-log');
         const btnClear = document.getElementById('btn-clear');
+        
+        const hpBar = document.getElementById('hp-bar');
+        const hpText = document.getElementById('hp-text');
 
-        // 로그 출력 함수
-        function addLog(result) {
+        // ==========================================
+        // [비즈니스 로직 및 UI 인터랙션 함수]
+        // ==========================================
+        
+        // 요구사항 1: 체력바 갱신 및 초기화 애니메이션 관리 함수
+        function updateTargetHpBar(damageTaken) {
+            currentTargetHp -= damageTaken;
+            let isDestroyed = false;
+
+            if (currentTargetHp <= 0) {
+                currentTargetHp = 0;
+                isDestroyed = true;
+            }
+
+            // UI 텍스트 및 바 비율 반영
+            const hpPercentage = (currentTargetHp / MAX_TARGET_HP) * 100;
+            hpBar.style.width = `${hpPercentage}%`;
+            hpText.innerText = `${currentTargetHp} / ${MAX_TARGET_HP} HP`;
+
+            // 체력이 0이 되어 파괴되었을 때의 리셋 처리 및 특수 알림 로그
+            if (isDestroyed) {
+                setTimeout(() => {
+                    // 시스템 로그 알림
+                    const systemLog = document.createElement('div');
+                    systemLog.className = "text-yellow-400 font-bold bg-yellow-950/40 p-2 rounded border border-yellow-800/50 my-1 text-center animate-pulse";
+                    systemLog.innerHTML = "🚨 TARGET DESTROYED! 훈련용 더미가 완전 파괴되어 새 기체로 즉시 리스폰됩니다.";
+                    logContainer.appendChild(systemLog);
+                    
+                    // 데이터 리셋 및 바 리셋 애니메이션 가동
+                    currentTargetHp = MAX_TARGET_HP;
+                    hpBar.style.width = "100%";
+                    hpText.innerText = `${currentTargetHp} / ${MAX_TARGET_HP} HP`;
+                    
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                }, 400); // 체력바가 다 줄어든 직후 리스폰 연출을 주도록 delay 부여
+            }
+        }
+
+        // 요구사항 2: 크리티컬 데미지 출력 텍스트의 조건부 시각적 강조 디자인 적용 함수
+        function printCombatLog(attackResult) {
             const logEntry = document.createElement('div');
-            
-            // 타입과 크리티컬 여부에 따른 스타일링
-            let timeColor = result.type === 'Warrior' ? 'text-red-400' : 'text-green-400';
-            let msgClass = result.isCrit ? 'text-yellow-400 font-bold' : 'text-slate-300';
+            logEntry.className = "transition-all duration-200 border-b border-slate-800/50 pb-1.5";
             
             const timestamp = new Date().toLocaleTimeString();
+            let attackerLabelColor = attackResult.type === 'Warrior' ? 'text-red-400' : 'text-green-400';
             
+            // 크리티컬 상태에 따른 분기 스타일링 적용
+            let messageStyleClass = "text-slate-300";
+            if (attackResult.isCrit) {
+                // 주황/빨간색 계열 테마, 굵게 표시, 애니메이션 클래스 포함
+                messageStyleClass = "text-orange-400 font-black bg-orange-950/30 px-1 py-0.5 rounded border border-orange-500/20 crit-animation inline-block";
+            } else if (attackResult.type === 'Warrior') {
+                messageStyleClass = "text-slate-200";
+            }
+
             logEntry.innerHTML = `
-                <span class="text-slate-500">[${timestamp}]</span> 
-                <span class="${timeColor}">${result.attacker}.attack()</span> <span class="text-slate-400">-></span> 
-                <span class="${msgClass}">${result.message}</span>
+                <span class="text-slate-500 text-[11px]">[${timestamp}]</span> 
+                <span class="${attackerLabelColor} font-bold">${attackResult.attacker}.attack()</span>
+                <span class="text-slate-400 mx-1">→</span> 
+                <span class="${messageStyleClass}">${attackResult.message}</span>
             `;
             
             logContainer.appendChild(logEntry);
             
-            // 최하단으로 자동 스크롤
+            // 신규 로그 발생 시 최하단으로 부드럽게 스크롤링
             logContainer.scrollTop = logContainer.scrollHeight;
         }
 
-        // 이벤트 리스너: 다형성(Polymorphism) 호출
-        // 두 버튼 모두 동일하게 '.attack()' 메서드를 호출하지만 결과는 클래스에 따라 다름.
+        // ==========================================
+        // [이벤트 리스너 핸들러 매핑]
+        // ==========================================
+        
+        // 전사 공격 이벤트 트리거 (동일 인터페이스 바인딩)
         btnWarrior.addEventListener('click', () => {
-            const result = myWarrior.attack(); 
-            addLog(result);
+            const res = myWarrior.attack(); // 다형성적 메소드 호출
+            printCombatLog(res);
+            updateTargetHpBar(res.damage);
         });
 
+        // 궁수 공격 이벤트 트리거 (동일 인터페이스 바인딩)
         btnArcher.addEventListener('click', () => {
-            const result = myArcher.attack();
-            addLog(result);
+            const res = myArcher.attack(); // 다형성적 메소드 호출
+            printCombatLog(res);
+            updateTargetHpBar(res.damage);
         });
 
-        // 로그 초기화 버튼
+        // 로그 컨테이너 초기화
         btnClear.addEventListener('click', () => {
-            logContainer.innerHTML = '<div class="text-slate-500 italic">System: Log cleared. Ready.</div>';
+            logContainer.innerHTML = '<div class="text-slate-500 italic">System: 시뮬레이터 로그가 초기화되었습니다.</div>';
         });
 
     </script>
